@@ -1,6 +1,5 @@
 # Credenciais — NUNCA commitar
 .env
-js/firebase-config.js
 
 # Dependências
 node_modules/
