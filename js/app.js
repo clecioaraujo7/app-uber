@@ -3,8 +3,6 @@
 let profiles = {};
 let activeProfile = null;
 let currentFilter = 'all';
-let lineChartInstance = null;
-let barChartInstance = null;
 
 // Cores para avatares
 const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
@@ -160,12 +158,11 @@ function updateLineChart(filteredRecords) {
         labels.push(date.toLocaleDateString('pt-BR', {day: 'numeric', month: 'short'}));
     }
 
-if (lineChartInstance) {
-        lineChartInstance.destroy();
-        lineChartInstance = null;
+    if (window.lineChartInstance) {
+        window.lineChartInstance.destroy();
     }
 
-    lineChartInstance = new Chart(ctx, {
+    window.lineChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -256,12 +253,11 @@ function updateBarChart(filteredRecords) {
         weekLabels.push(`Sem ${i + 1}`);
     }
 
-if (barChartInstance) {
-        barChartInstance.destroy();
-        barChartInstance = null;
+    if (window.barChartInstance) {
+        window.barChartInstance.destroy();
     }
 
-    barChartInstance = new Chart(ctx, {
+    window.barChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: weekLabels,

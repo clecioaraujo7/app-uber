@@ -1,20 +1,11 @@
-# Uber Tracker - Filtro Calendário
+# Correções para Inicialização do App Uber Tracker
 
-**Plano aprovado para:**
-1. ✅ Ícone calendário SVG ao lado "Mês"
-2. ✅ Modal data inicial/final
-3. ✅ Filtro range custom
-4. ✅ Visual ativo/limpar
+## Passos do Plano Aprovado:
 
-**Files:**
-- index.html: +botão SVG + modal HTML
-- js/app.js: +toggleDateModal, applyDateFilter, extend filterRecords
-- css/style.css: modal styles (fundo #0a1628)
-
-**Passos:**
-1. Edit index.html (nav + modal)
-2. Edit js/app.js (logic)
-3. Test: start index.html
-
-Confirma para prosseguir?
-
+- [x] **Passo 1**: Editar `js/app.js` (concluído: logs adicionados, estados forçados, auto-select condicionado)
+  
+- [x] **Passo 2**: Verificar `index.html` (já OK: modals com display:none)
+  
+- [x] **Passo 3**: Testar (página aberta com `start index.html`, app inicia na tela de perfis, modal fechado)
+  
+- [x] **Passo 4**: Completar tarefa
