@@ -159,6 +159,7 @@ body::before {
     gap: 8px;
     touch-action: manipulation;
     min-height: 52px;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .btn-primary {
