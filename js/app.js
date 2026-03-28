@@ -127,29 +127,35 @@ function updateTodayCard() {
     }
 }
 
-function updateCharts() {
+function updateCharts(filteredRecords) {
     if (!activeProfile) return;
 
-    const profile = profiles[activeProfile];
-    const records = profile.records.sort((a, b) => new Date(b.date) - new Date(a.date));
-
     // Gráfico linha 30 dias
-    updateLineChart(records);
+    updateLineChart(filteredRecords);
     // Gráfico barras semanas
-    updateBarChart(records);
+    updateBarChart(filteredRecords);
 }
 
-function updateLineChart(records) {
+function updateLineChart(filteredRecords) {
     const ctx = document.getElementById('lineChart').getContext('2d');
+    
+    // Título dinâmico
+    const titleEl = document.querySelector('.chart-card h3');
+    const filterTitle = getFilterTitle();
+    titleEl.textContent = `📈 ${filterTitle}`;
+    
+    // Filtrar records para últimos 30 dias apenas dos filteredRecords
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     
     const thirtyDaysData = [];
+    const labels = [];
     for (let i = 29; i >= 0; i--) {
         const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
         const dateStr = date.toISOString().split('T')[0];
-        const dayRecord = records.find(r => r.date === dateStr);
+        const dayRecord = filteredRecords.find(r => r.date === dateStr);
         thirtyDaysData.push(dayRecord ? parseFloat(dayRecord.gross || 0) : 0);
+        labels.push(date.toLocaleDateString('pt-BR', {day: 'numeric', month: 'short'}));
     }
 
     if (window.lineChartInstance) {
@@ -159,10 +165,7 @@ function updateLineChart(records) {
     window.lineChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: Array.from({length: 30}, (_, i) => {
-                const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                return date.toLocaleDateString('pt-BR', {day: 'numeric', month: 'short'});
-            }),
+            labels: labels,
             datasets: [{
                 label: 'Faturamento (R$)',
                 data: thirtyDaysData,
@@ -202,17 +205,45 @@ function updateLineChart(records) {
     });
 }
 
-function updateBarChart(records) {
+function getFilterTitle() {
+    switch (currentFilter) {
+        case 'all':
+            return 'Faturamento — todos os registros';
+        case 'week':
+            return 'Faturamento — últimos 7 dias';
+        case 'month':
+            const now = new Date();
+            return `Faturamento — ${now.toLocaleDateString('pt-BR', {month: 'long', year: 'numeric'})}`;
+        case 'custom':
+            if (dateFilter.from && dateFilter.to) {
+                const from = formatDate(dateFilter.from);
+                const to = formatDate(dateFilter.to);
+                return `Faturamento — ${from} a ${to}`;
+            }
+            return 'Faturamento — período selecionado';
+        default:
+            return 'Faturamento';
+    }
+}
+
+function updateBarChart(filteredRecords) {
     const ctx = document.getElementById('barChart').getContext('2d');
+    
+    // Título dinâmico
+    const titleEl = document.querySelector('.chart-card:nth-child(2) h3');
+    const filterTitle = getFilterTitle();
+    titleEl.textContent = `📊 ${filterTitle}`;
+    
     const now = new Date();
     const weeksData = [];
     const weekLabels = [];
 
+    // Agrupar filteredRecords por semana
     for (let i = 5; i >= 0; i--) {
         const weekStart = new Date(now.getTime() - (i * 7 + (now.getDay() || 7)) * 24 * 60 * 60 * 1000);
         const weekEnd = new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000);
         
-        const weekRecords = records.filter(r => {
+        const weekRecords = filteredRecords.filter(r => {
             const recordDate = new Date(r.date);
             return recordDate >= weekStart && recordDate <= weekEnd;
         });
@@ -267,15 +298,19 @@ function updateBarChart(records) {
 
 function updateDashboard() {
     updateTodayCard();
-    updateCharts();
     
     if (!activeProfile) return;
 
     const profile = profiles[activeProfile];
     const allRecords = profile.records;
-    const records = filterRecords(allRecords, currentFilter);
+    const filteredRecords = filterRecords(allRecords, currentFilter);
 
-    if (records.length === 0) {
+    updateStatsAndList(filteredRecords);
+    updateCharts(filteredRecords);
+}
+
+function updateStatsAndList(filteredRecords) {
+    if (filteredRecords.length === 0) {
         document.getElementById('stats-grid').style.display = 'none';
         const list = document.getElementById('records-list');
         list.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><h3>Nenhum registro no período</h3><p>Tente outro filtro ou adicione registros.</p></div>';
@@ -285,15 +320,14 @@ function updateDashboard() {
     document.getElementById('stats-grid').style.display = 'grid';
 
     // Totais do período filtrado
-    const totalGross = records.reduce((sum, r) => sum + parseFloat(r.gross || 0), 0);
-    const totalExpenses = records.reduce((sum, r) => sum + parseFloat(r.expenses || 0), 0);
+    const totalGross = filteredRecords.reduce((sum, r) => sum + parseFloat(r.gross || 0), 0);
+    const totalExpenses = filteredRecords.reduce((sum, r) => sum + parseFloat(r.expenses || 0), 0);
     const totalNet = totalGross - totalExpenses;
-    const totalKm = records.reduce((sum, r) => sum + parseFloat(r.km || 0), 0);
-    const totalRides = records.reduce((sum, r) => sum + parseInt(r.rides || 0), 0);
-    const totalHours = records.reduce((sum, r) => sum + parseFloat(r.hours || 0), 0);
+    const totalKm = filteredRecords.reduce((sum, r) => sum + parseFloat(r.km || 0), 0);
+    const totalRides = filteredRecords.reduce((sum, r) => sum + parseInt(r.rides || 0), 0);
+    const totalHours = filteredRecords.reduce((sum, r) => sum + parseFloat(r.hours || 0), 0);
 
     const avgHour = totalHours > 0 ? (totalGross / totalHours).toFixed(2) : 0;
-
 
     document.getElementById('total-gross').textContent = formatCurrency(totalGross);
     document.getElementById('total-net').textContent = formatCurrency(totalNet);
@@ -307,7 +341,7 @@ function updateDashboard() {
     list.innerHTML = '';
 
     // Ordenar por data recente
-    const sorted = [...records].sort((a,b) => new Date(b.date) - new Date(a.date));
+    const sorted = [...filteredRecords].sort((a,b) => new Date(b.date) - new Date(a.date));
 
     sorted.forEach((record, index) => {
         const net = parseFloat(record.gross) - parseFloat(record.expenses);
@@ -331,14 +365,15 @@ function updateDashboard() {
 
 
 function filterRecords(records, filter) {
-    console.log('Filtrando com:', { filter, dateFilter });
-    
     const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    
     return records.filter(record => {
-        const recordDate = new Date(record.date + 'T12:00:00'); // Normaliza para meio-dia
-        console.log('Comparando registro:', record.date, recordDate);
+        const recordDate = new Date(record.date + 'T12:00:00');
         
         switch (filter) {
+            case 'today':
+                return record.date === today;
             case 'week':
                 const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
                 return recordDate >= weekAgo;
@@ -347,14 +382,11 @@ function filterRecords(records, filter) {
                 return recordDate >= monthAgo;
             case 'custom':
                 if (!dateFilter.from && !dateFilter.to) {
-                    console.log('Filtro custom sem datas - mostrando todos');
                     return true;
                 }
                 const fromDate = dateFilter.from ? new Date(dateFilter.from + 'T00:00:00') : new Date(0);
                 const toDate = dateFilter.to ? new Date(dateFilter.to + 'T23:59:59') : new Date();
-                const isInRange = recordDate >= fromDate && recordDate <= toDate;
-                console.log('Filtro custom resultado:', isInRange, { recordDate, fromDate, toDate });
-                return isInRange;
+                return recordDate >= fromDate && recordDate <= toDate;
             default:
                 return true;
         }
@@ -365,8 +397,10 @@ function filterRecords(records, filter) {
 
 // Registro
 function showRegisterModal() {
+    console.log('Botão registrar clicado');
     document.getElementById('modal-overlay').classList.add('active');
     document.getElementById('register-modal').classList.add('active');
+    document.getElementById('register-modal').scrollTop = 0;
 }
 
 function hideRegisterModal() {
@@ -436,6 +470,8 @@ function formatDate(dateString) {
 function filtrar(tipo) {
   document.getElementById('btn-todos').style.background = tipo === 'todos' ? '#00d4ff' : 'transparent';
   document.getElementById('btn-todos').style.color = tipo === 'todos' ? '#050d1a' : '#5a8ab0';
+  document.getElementById('btn-hoje').style.background = tipo === 'hoje' ? '#00d4ff' : 'transparent';
+  document.getElementById('btn-hoje').style.color = tipo === 'hoje' ? '#050d1a' : '#5a8ab0';
   document.getElementById('btn-semana').style.background = tipo === 'semana' ? '#00d4ff' : 'transparent';
   document.getElementById('btn-semana').style.color = tipo === 'semana' ? '#050d1a' : '#5a8ab0';
   document.getElementById('btn-mes').style.background = tipo === 'mes' ? '#00d4ff' : 'transparent';
@@ -445,6 +481,7 @@ function filtrar(tipo) {
   
   // Atualiza filtro global
   if (tipo === 'todos') currentFilter = 'all';
+  else if (tipo === 'hoje') currentFilter = 'today';
   else if (tipo === 'semana') currentFilter = 'week';
   else if (tipo === 'mes') currentFilter = 'month';
   updateDashboard();
