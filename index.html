@@ -14,8 +14,33 @@
 </head>
 <body>
 
+    <!-- Loading Overlay -->
+    <div id="loading-screen" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:var(--bg-primary); z-index:99999; align-items:center; justify-content:center; flex-direction:column; gap:20px;">
+        <div style="font-size:48px;">🚗</div>
+        <p style="color:var(--accent-blue); font-family:'Orbitron',monospace; font-size:13px; letter-spacing:3px;">CARREGANDO...</p>
+    </div>
+
+    <!-- Tela de Login -->
+    <div id="login-screen" class="screen active">
+        <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; text-align:center; padding:40px 20px;">
+            <div style="font-size:64px; margin-bottom:24px;">🚗</div>
+            <h1 style="font-family:'Orbitron',monospace; font-size:26px; color:var(--accent-blue); margin-bottom:8px; letter-spacing:2px;">UBER TRACKER</h1>
+            <p style="color:var(--text-secondary); margin-bottom:48px;">Rastreador de Ganhos</p>
+            <button onclick="signInWithGoogle()" class="btn btn-primary" style="display:flex; align-items:center; gap:12px; padding:16px 32px; font-size:16px; margin:0 auto;">
+                <svg width="20" height="20" viewBox="0 0 48 48">
+                    <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.7 29.3 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 1.1 8.2 3l5.7-5.7C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.6 20-21 0-1.3-.2-2.7-.4-4z"/>
+                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 6 1.1 8.2 3l5.7-5.7C34.6 5.1 29.6 3 24 3 16.3 3 9.7 7.9 6.3 14.7z"/>
+                    <path fill="#4CAF50" d="M24 45c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.4C29.6 36.3 26.9 37 24 37c-5.3 0-9.6-3.3-11.3-7.9l-6.6 5.1C9.6 40.9 16.3 45 24 45z"/>
+                    <path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.4-2.4 4.4-4.5 5.7l6.6 5.4C41.4 35.3 44 30 44 24c0-1.3-.2-2.7-.4-4z"/>
+                </svg>
+                Entrar com Google
+            </button>
+            <p style="color:var(--text-secondary); font-size:12px; margin-top:32px; max-width:260px; line-height:1.6;">Seus dados ficam salvos na nuvem e sincronizados em todos os seus dispositivos.</p>
+        </div>
+    </div>
+
     <!-- Tela de Seleção de Perfis -->
-    <div id="profile-select-screen" class="screen active">
+    <div id="profile-select-screen" class="screen">
         <h1 style="text-align: center; margin-bottom: 40px; font-size: 36px; font-family: 'Orbitron', monospace; font-weight: 900; letter-spacing: 3px; text-shadow: 0 0 20px rgba(0,212,255,0.8);">🚀 UBER TRACKER</h1>
         <div class="profiles-grid" id="profiles-grid">
             <!-- Perfis serão carregados aqui -->
@@ -24,6 +49,10 @@
             <button class="btn btn-primary" onclick="createProfile()">
                 ➕ Criar Novo Perfil
             </button>
+        </div>
+        <div style="text-align:center; margin-top:24px; padding-bottom:20px;">
+            <p id="user-display-name" style="color:var(--text-secondary); font-size:13px; margin-bottom:12px;"></p>
+            <button onclick="doSignOut()" style="background:none; border:1px solid var(--border-color); color:var(--text-secondary); padding:8px 20px; border-radius:20px; cursor:pointer; font-size:13px; transition:all 0.2s;">Sair da conta</button>
         </div>
     </div>
 
@@ -160,8 +189,13 @@
     
 
     <!-- Modal de Registro -->
-    <div class="modal-overlay" id="modal-overlay" onclick="hideRegisterModal()" style="display: none;"></div>
-    <div class="modal" id="register-modal" style="display: none;">
+    <div class="modal-overlay" id="modal-overlay" onclick="hideRegisterModal()"></div>
+    <div class="modal" id="register-modal">
+
+        <div class="modal-header">
+            <h3 class="modal-title">➕ Registrar Dia de Trabalho</h3>
+            <button class="modal-close-btn" onclick="hideRegisterModal()">✕</button>
+        </div>
 
         <div class="form-group">
             <label>Data</label>
@@ -198,6 +232,20 @@
         </div>
     </div>
 
+    <!-- App (carrega antes do módulo Firebase) -->
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/profiles.js"></script>
+    <script src="js/records.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/modals.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
+    <!-- Firebase SDK v12 (módulo — executa após os scripts acima) -->
+    <script type="module" src="js/firebase-config.js"></script>
 </body>
 </html>
