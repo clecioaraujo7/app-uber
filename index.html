@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uber Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+</head>
+<body>
+
+    <!-- Tela de Seleção de Perfis -->
+    <div id="profile-select-screen" class="screen active">
+        <h1 style="text-align: center; margin-bottom: 40px; font-size: 36px; font-family: 'Orbitron', monospace; font-weight: 900; letter-spacing: 3px; text-shadow: 0 0 20px rgba(0,212,255,0.8);">🚀 UBER TRACKER</h1>
+        <div class="profiles-grid" id="profiles-grid">
+            <!-- Perfis serão carregados aqui -->
+        </div>
+        <div style="text-align: center; margin-top: 40px;">
+            <button class="btn btn-primary" onclick="createProfile()">
+                ➕ Criar Novo Perfil
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard do Perfil -->
+    <div id="dashboard-screen" class="screen">
+        <div class="switch-profile" onclick="switchProfile()" title="Trocar Perfil">
+            👤
+        </div>
+        
+        <div class="header">
+            <div class="avatar" id="current-avatar" style="background: var(--accent-blue)"></div>
+            <div class="profile-info">
+                <h2 id="current-profile-name"></h2>
+                <p id="current-profile-records">0 registros</p>
+            </div>
+
+            <div id="nav-filtros" style="display:flex; gap:8px; align-items:center; justify-content:center; margin-left:auto; margin-right:auto; width:100%; text-align:center;">
+  <button id="btn-todos" onclick="filtrar('todos')" style="padding:8px 20px; border-radius:20px; border:1px solid #1e3a5f; background:#00d4ff; color:#050d1a; font-weight:600; cursor:pointer; white-space:nowrap; font-size:14px;">Todos</button>
+  <button id="btn-semana" onclick="filtrar('semana')" style="padding:8px 20px; border-radius:20px; border:1px solid #1e3a5f; background:transparent; color:#5a8ab0; cursor:pointer; white-space:nowrap; font-size:14px;">Semana</button>
+  <button id="btn-mes" onclick="filtrar('mes')" style="padding:8px 20px; border-radius:20px; border:1px solid #1e3a5f; background:transparent; color:#5a8ab0; cursor:pointer; white-space:nowrap; font-size:14px;">Mês</button>
+  <button id="btn-calendar" onclick="toggleDateModal()" style="padding:8px 12px; border-radius:20px; border:1px solid #1e3a5f; background:transparent; color:#5a8ab0; cursor:pointer; font-size:14px;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+      <line x1="16" y1="2" x2="16" y2="6"></line>
+      <line x1="8" y1="2" x2="8" y2="6"></line>
+      <line x1="3" y1="10" x2="21" y2="10"></line>
+    </svg>
+  </button>
+</div>
+
+        </div>
+
+
+        <button class="btn btn-primary" style="width: 100%; margin-bottom: 30px;" onclick="showRegisterModal()">
+            ➕ Registrar Dia de Trabalho
+        </button>
+
+        <!-- Card Hoje -->
+        <div class="today-card" id="today-card">
+            <h3 style="margin-bottom: 20px; color: var(--accent-blue);">📅 HOJE</h3>
+            <div style="display: none;" id="today-stats">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                    <div><strong>Faturamento:</strong> <span id="today-gross">R$ 0</span></div>
+                    <div><strong>KM:</strong> <span id="today-km">0 km</span></div>
+                    <div><strong>Corridas:</strong> <span id="today-rides">0</span></div>
+                    <div><strong>Horas:</strong> <span id="today-hours">0h</span></div>
+                    <div><strong>Lucro:</strong> <span id="today-net">R$ 0</span></div>
+                </div>
+            </div>
+            <div id="no-today" style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                Nenhum registro hoje ainda
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="chart-section">
+            <div class="chart-card">
+                <h3 style="margin-bottom: 20px; color: var(--accent-blue);">📈 Faturamento — últimos 30 dias</h3>
+                <canvas id="lineChart" height="100"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3 style="margin-bottom: 20px; color: var(--accent-blue);">📊 Comparativo semanal</h3>
+                <canvas id="barChart" height="100"></canvas>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="stats-grid" style="display: none;">
+
+            <div class="stat-card">
+                <div class="stat-value" id="total-gross">R$ 0</div>
+                <div class="stat-label">Faturamento Bruto</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-net">R$ 0</div>
+                <div class="stat-label">Lucro Líquido</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-km">0 km</div>
+                <div class="stat-label">KM Rodados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-rides">0</div>
+                <div class="stat-label">Corridas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-hours">0h</div>
+                <div class="stat-label">Horas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avg-hour">R$ 0/h</div>
+                <div class="stat-label">Média por Hora</div>
+            </div>
+        </div>
+
+        <div class="records-list">
+            <div id="records-list">
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <h3>Nenhum registro ainda</h3>
+                    <p>Registre seu primeiro dia de trabalho!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modal Filtro Data -->
+    <div class="modal-overlay" id="date-filter-overlay" onclick="hideDateModal()" style="display: none;"></div>
+    <div class="modal" id="date-filter-modal" style="display: none;">
+
+        <div class="form-group">
+            <label>Filtrar por período</label>
+            <div class="form-row">
+                <div style="flex:1;">
+                    <label>Data inicial</label>
+                    <input type="date" id="date-from">
+                </div>
+                <div style="flex:1;">
+                    <label>Data final</label>
+                    <input type="date" id="date-to">
+                </div>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-secondary btn-small" onclick="clearDateFilter()">Limpar</button>
+            <button class="btn btn-primary btn-small" onclick="applyDateFilter()">Aplicar</button>
+            <button onclick="hideDateModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:var(--text-secondary); float:right;">×</button>
+        </div>
+    </div>
+    
+
+    <!-- Modal de Registro -->
+    <div class="modal-overlay" id="modal-overlay" onclick="hideRegisterModal()" style="display: none;"></div>
+    <div class="modal" id="register-modal" style="display: none;">
+
+        <div class="form-group">
+            <label>Data</label>
+            <input type="date" id="record-date" required>
+        </div>
+        <div class="form-group">
+            <label>Faturamento Bruto (R$)</label>
+            <input type="number" id="record-gross" step="0.01" min="0" required>
+        </div>
+        <div class="form-group">
+            <label>Gastos (R$)</label>
+            <input type="number" id="record-expenses" step="0.01" min="0" value="0" required>
+        </div>
+        <div class="form-row">
+            <div>
+                <label>KM Rodados</label>
+                <input type="number" id="record-km" min="0" required>
+            </div>
+            <div>
+                <label>Corridas</label>
+                <input type="number" id="record-rides" min="0" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div>
+                <label>Horas Trabalhadas</label>
+                <input type="number" id="record-hours" step="0.25" min="0" required>
+            </div>
+            <div></div>
+        </div>
+        <div class="form-actions">
+            <button class="btn btn-secondary btn-small" onclick="hideRegisterModal()">Cancelar</button>
+            <button class="btn btn-primary btn-small" onclick="saveRecord()">Salvar Registro</button>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
